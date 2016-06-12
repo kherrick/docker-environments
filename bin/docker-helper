@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+
+PROJECT_ID=010001111
+PROJECT=base
+PROJECT_IN_UPPERCASE=$(echo "$PROJECT" | tr '[:lower:]' '[:upper:]')
+SCRIPT_SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+helper ()
+{
+  if [ $# -gt 0 ] && [ "$1" != "-" ]; then
+    echo "$0": illegal option -- "$@"
+    echo
+  fi
+
+  echo "Usage: $0 [COMMANDS]"
+  echo
+  echo Commands:
+  echo "  build      build the $PROJECT_IN_UPPERCASE docker containers"
+  echo "  destroy    stop and delete all of the $PROJECT_IN_UPPERCASE docker containers"
+  echo '  exec       execute a command in a running docker container'
+  echo '  help       show this helper text'
+  echo '  shell      get a shell in a running docker container'
+  echo "  start      start the $PROJECT_IN_UPPERCASE docker containers"
+  echo '  status     outputs the status of all docker containers in the environment'
+  echo "  stop       stops the $PROJECT_IN_UPPERCASE docker containers"
+  echo
+}
+
+cd "$SCRIPT_SOURCE_DIR/.." || exit
+source "bin/lib/docker-utilities" || exit
+
+if [[ $(isDockerRunning) == 'false' ]]; then
+  echo Please install docker.
+  echo
+
+  exit 1
+fi
+
+# get details on the project containers
+areContainersBuilt=$(areContainersBuilt $PROJECT_ID-$PROJECT)
+areContainersRunning=$(areContainersRunning $PROJECT_ID-$PROJECT)
+
+# check the first script parameter for a command
+case $1 in
+build|compose|up)
+  docker-compose up --build -d
+  ;;
+destroy|down)
+  docker-compose down --rmi all --remove-orphans
+  ;;
+help|'/?'|'-h'|'/h'|'--help'|'/help')
+  helper
+  ;;
+exec|shell|ssh)
+  if [[ $areContainersBuilt == 'false' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are not built. Try: \`$0 build\`"
+    echo
+
+    exit
+  fi
+
+  if [[ $areContainersRunning == 'false' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are not started. Try: \`$0 start\`"
+    echo
+
+    exit
+  fi
+
+  if [[ "$2" == "" ]]; then
+    echo
+    echo "No $PROJECT_IN_UPPERCASE container was specified. Try: \`$0 $1 \$CONTAINER-NAME where"
+    echo "\$CONTAINER-NAME is one of the following:"
+    echo
+    listProjectContainers $PROJECT_ID-$PROJECT
+    echo
+
+    exit
+  fi
+
+  if [[ $1 == "exec" ]] && [[ $3 == "" ]]; then
+      echo
+      echo "You must pass a command to run inside of the container. Try: \`$0 $1 $2 ls /\`"
+      echo
+
+      exit
+  fi
+
+  if [[ $1 == "shell" ]] || [[ $1 == "ssh" ]]; then
+      docker-compose exec "$2" /bin/sh
+
+      exit
+  fi
+
+  shift
+  docker-compose exec "$@"
+  ;;
+start)
+  if [[ $areContainersRunning == 'true' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are already started. Try: \`$0 status\`"
+    echo
+
+    exit
+  fi
+
+  if [[ $areContainersBuilt == 'false' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are not built. Try: \`$0 build\`"
+    echo
+
+    exit
+  fi
+
+  docker-compose start
+  ;;
+status)
+  if [[ $areContainersBuilt == 'false' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are not built. Try: \`$0 build\`"
+    echo
+
+    exit
+  fi
+
+  if [[ $areContainersRunning == 'false' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are not started. Try: \`$0 start\`"
+    echo
+
+    exit
+  fi
+
+  docker ps -a --filter name=$PROJECT_ID-$PROJECT
+  ;;
+stop|halt)
+  if [[ $areContainersRunning == 'false' ]]; then
+    echo
+    echo "$PROJECT_IN_UPPERCASE containers are not started. Try: \`$0 start\`"
+    echo
+
+    exit
+  fi
+
+  docker-compose stop
+  ;;
+*)
+  helper "$@"
+
+  exit 1
+esac

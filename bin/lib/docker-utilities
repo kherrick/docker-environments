@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+paramCheck()
+{
+  if [[ $2 == "" ]]; then
+    echo
+    echo "$1" requires a parameter
+    echo
+
+    return 0
+  fi
+
+  return 1
+}
+
+isDockerRunning()
+{
+  if [[ $(docker info > /dev/null 2>&1; echo $?) -eq 0 ]]; then
+    echo true; return 0
+  fi
+
+  echo false; return 1
+}
+
+areContainersBuilt()
+{
+  paramCheck "${FUNCNAME[0]}" "$@" && return 1
+
+  if [[ $(docker ps -a | grep "$1" > /dev/null 2>&1; echo $?) -eq 0 ]]; then
+        echo true; return 0
+  fi
+
+  echo false; return 1
+}
+
+areContainersRunning()
+{
+  paramCheck "${FUNCNAME[0]}" "$@" && return 1
+
+  if [[ $(docker ps | grep "$1" > /dev/null 2>&1; echo $?) -eq 0 ]]; then
+        echo true; return 0
+  fi
+
+  echo false; return 1
+}
+
+listProjectContainers ()
+{
+  paramCheck "${FUNCNAME[0]}" "$@" && return 1
+
+  echo
+  for container in $(docker ps -a --filter name="$1" --format "{{.Names}}"); do
+      echo "  $container"
+  done
+  echo
+}
