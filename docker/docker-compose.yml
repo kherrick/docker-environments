@@ -1,0 +1,12 @@
+services:
+  kherrick_alpine-elixir-node:
+    container_name: kherrick_alpine-elixir-node
+    image: kherrick/alpine-elixir-node
+    ports:
+    - published: 4000
+      target: 4000
+    restart: 'no'
+    stdin_open: true
+    volumes:
+    - ./shared:/opt/shared:rw
+version: '3.2'
