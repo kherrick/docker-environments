@@ -1,16 +1,16 @@
-nginx-php
+bolt
 =========
 
-###To launch the containers and use nginx with php-fpm:
+###To launch the containers and use Bolt:
 
 * [Get the required dependencies](https://www.docker.com/products/docker):
   - Docker Engine 1.11.2+
   - Docker Compose v1.7.1+
 
 * Clone the repository and build the containers (the first time may take awhile):
-  - `$ git clone https://github.com/kherrick/docker-environments nginx-php`
-  - `$ cd nginx-php/`
-  - `$ git checkout nginx-php`
+  - `$ git clone https://github.com/kherrick/docker-environments bolt`
+  - `$ cd bolt`
+  - `$ git checkout bolt`
   - `$ bin/docker-helper build`
 
 * To turn off the containers:
