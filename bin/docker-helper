@@ -30,7 +30,7 @@ cd "$SCRIPT_SOURCE_DIR/.." || exit
 source "bin/lib/docker-utilities" || exit
 
 if [[ $(isDockerRunning) == 'false' ]]; then
-  echo Please install docker.
+  echo Please make sure that docker is installed and running.
   echo
 
   exit 1

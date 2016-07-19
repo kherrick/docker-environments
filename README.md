@@ -11,7 +11,7 @@ bolt
   - `$ git clone https://github.com/kherrick/docker-environments bolt`
   - `$ cd bolt`
   - `$ git checkout bolt`
-  - `$ bin/docker-helper build`
+  - `$ bin/build`
 
 * To turn off the containers:
   - `$ bin/docker-helper stop`
