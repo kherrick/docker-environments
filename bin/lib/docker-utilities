@@ -1,56 +1,50 @@
-#!/usr/bin/env bash
+# shellcheck disable=SC2148
+# shared, miscellaneous docker utilities
 
-paramCheck()
-{
-  if [[ $2 == "" ]]; then
-    echo
-    echo "$1" requires a parameter
-    echo
+param_check() {
+  if [[ -z "$2" ]]; then
+    printf "\n"
+    printf "%s requires a parameter" "$1"
+    printf "\n"
 
-    return 0
+    return 1
   fi
-
-  return 1
 }
 
-isDockerRunning()
-{
-  if [[ $(docker info > /dev/null 2>&1; echo $?) -eq 0 ]]; then
-    echo true; return 0
+is_docker_running() {
+  if [[ $(docker info > /dev/null 2>&1; printf "%d" "$?") -eq 0 ]]; then
+    { printf 'true'; return 0; }
   fi
 
-  echo false; return 1
+  { printf 'false'; return 1; }
 }
 
-areContainersBuilt()
-{
-  paramCheck "${FUNCNAME[0]}" "$@" && return 1
+are_containers_built() {
+  param_check "${FUNCNAME[0]}" "$@" || return 1
 
-  if [[ $(docker ps -a | grep "$1" > /dev/null 2>&1; echo $?) -eq 0 ]]; then
-        echo true; return 0
+  if [[ $(docker ps -a | grep "$1" > /dev/null 2>&1; printf "%d" "$?") -eq 0 ]]; then
+    { printf 'true'; return 0; }
   fi
 
-  echo false; return 1
+  { printf 'false'; return 1; }
 }
 
-areContainersRunning()
-{
-  paramCheck "${FUNCNAME[0]}" "$@" && return 1
+are_containers_running() {
+  param_check "${FUNCNAME[0]}" "$@" || return 1
 
-  if [[ $(docker ps | grep "$1" > /dev/null 2>&1; echo $?) -eq 0 ]]; then
-        echo true; return 0
+  if [[ $(docker ps | grep "$1" > /dev/null 2>&1; printf "%d" "$?") -eq 0 ]]; then
+    { printf 'true'; return 0; }
   fi
 
-  echo false; return 1
+  { printf 'false'; return 1; }
 }
 
-listProjectContainers ()
-{
-  paramCheck "${FUNCNAME[0]}" "$@" && return 1
+list_project_containers () {
+  param_check "${FUNCNAME[0]}" "$@" || return 1
 
-  echo
+  printf "\n"
   for container in $(docker ps -a --filter name="$1" --format "{{.Names}}"); do
-      echo "  $container"
+    printf "  %s\n" "$container"
   done
-  echo
+  printf "\n"
 }

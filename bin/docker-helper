@@ -1,44 +1,45 @@
 #!/usr/bin/env bash
 
-PROJECT_ID=010001111
-PROJECT=bolt
-PROJECT_IN_UPPERCASE=$(echo "$PROJECT" | tr '[:lower:]' '[:upper:]')
-SCRIPT_SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+readonly PROJECT_ID=010001111
+readonly PROJECT=bolt
+readonly PROJECT_IN_UPPERCASE="$(printf "%s" "$PROJECT" | tr '[:lower:]' '[:upper:]')"
+readonly SCRIPT_SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 helper ()
 {
-  if [ $# -gt 0 ] && [ "$1" != "-" ]; then
-    echo "$0": illegal option -- "$@"
-    echo
+  if [[ $# -gt 0 ]] && [[ "$1" != '-' ]]; then
+    printf "%s: illegal option -- %s" "$0" "$@"
+    printf "\n"
   fi
 
-  echo "Usage: $0 [COMMANDS]"
-  echo
-  echo Commands:
-  echo "  build      build the $PROJECT_IN_UPPERCASE docker containers"
-  echo "  destroy    stop and delete all of the $PROJECT_IN_UPPERCASE docker containers"
-  echo '  exec       execute a command in a running docker container'
-  echo '  help       show this helper text'
-  echo '  shell      get a shell in a running docker container'
-  echo "  start      start the $PROJECT_IN_UPPERCASE docker containers"
-  echo '  status     outputs the status of all docker containers in the environment'
-  echo "  stop       stops the $PROJECT_IN_UPPERCASE docker containers"
-  echo
+  printf "Usage: %s [COMMANDS]\n" "$0"
+  printf "\n"
+  printf "Commands:\n"
+  printf "  build      build the %s docker containers\n" "$PROJECT_IN_UPPERCASE"
+  printf "  destroy    stop and delete all of the %s docker containers\n" "$PROJECT_IN_UPPERCASE"
+  printf "  exec       execute a command in a running docker container\n"
+  printf "  help       show this helper text\n"
+  printf "  shell      get a shell in a running docker container\n"
+  printf "  start      start the %s docker containers\n" "$PROJECT_IN_UPPERCASE"
+  printf "  status     outputs the status of all docker containers in the environment\n"
+  printf "  stop       stops the %s docker containers\n" "$PROJECT_IN_UPPERCASE"
+  printf "\n"
 }
 
 cd "$SCRIPT_SOURCE_DIR/.." || exit
-source "bin/lib/docker-utilities" || exit
+# shellcheck source=lib/docker-utilities
+source "$SCRIPT_SOURCE_DIR/lib/docker-utilities" || exit
 
-if [[ $(isDockerRunning) == 'false' ]]; then
-  echo Please make sure that docker is installed and running.
-  echo
+if [[ "$(is_docker_running)" == 'false' ]]; then
+  printf "Please make sure that docker is installed and running.\n"
+  printf "\n"
 
   exit 1
 fi
 
 # get details on the project containers
-areContainersBuilt=$(areContainersBuilt $PROJECT_ID-$PROJECT)
-areContainersRunning=$(areContainersRunning $PROJECT_ID-$PROJECT)
+are_containers_built=$(are_containers_built $PROJECT_ID-$PROJECT)
+are_containers_running=$(are_containers_running $PROJECT_ID-$PROJECT)
 
 # check the first script parameter for a command
 case $1 in
@@ -52,63 +53,63 @@ help|'/?'|'-h'|'/h'|'--help'|'/help')
   helper
   ;;
 exec|shell|ssh)
-  if [[ $areContainersBuilt == 'false' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are not built. Try: \`$0 build\`"
-    echo
+  if [[ "$are_containers_built" == 'false' ]]; then
+    printf "\n"
+    printf "No %s containers are built. Try running: \`%s build\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
 
-  if [[ $areContainersRunning == 'false' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are not started. Try: \`$0 start\`"
-    echo
+  if [[ "$are_containers_running" == 'false' ]]; then
+    printf "\n"
+    printf "No %s containers are started. Try running: \`%s start\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
 
-  if [[ "$2" == "" ]]; then
-    echo
-    echo "No $PROJECT_IN_UPPERCASE container was specified. Try: \`$0 $1 \$CONTAINER-NAME where"
-    echo "\$CONTAINER-NAME is one of the following:"
-    echo
-    listProjectContainers $PROJECT_ID-$PROJECT
-    echo
+  if [[ -z "$2" ]]; then
+    printf "\n"
+    printf "No %s container was specified. Try running: \`%s %s \$CONTAINER-NAME\` where\n" "$PROJECT_IN_UPPERCASE" "$0" "$1"
+    printf "\$CONTAINER-NAME is one of the following:"
+    printf "\n"
+    list_project_containers "$PROJECT_ID-$PROJECT"
+    printf "\n"
 
     exit
   fi
 
-  if [[ $1 == "exec" ]] && [[ $3 == "" ]]; then
-      echo
-      echo "You must pass a command to run inside of the container. Try: \`$0 $1 $2 ls /\`"
-      echo
+  if [[ "$1" == "exec" ]] && [[ -z "$3" ]]; then
+    printf "\n"
+    printf "You must specify a command to run inside of the container. Try running \`%s %s %s ls /\`\n" "$0" "$1" "$2"
+    printf "\n"
 
-      exit
+    exit
   fi
 
-  if [[ $1 == "shell" ]] || [[ $1 == "ssh" ]]; then
-      docker-compose exec "$2" /bin/sh
+  if [[ "$1" == "shell" ]] || [[ "$1" == "ssh" ]]; then
+    docker-compose exec "$2" /bin/sh
 
-      exit
+    exit
   fi
 
   shift
-  docker-compose exec "$@"
+  docker exec -i "$@"
   ;;
 start)
-  if [[ $areContainersRunning == 'true' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are already started. Try: \`$0 status\`"
-    echo
+  if [[ "$are_containers_running" == 'true' ]]; then
+    printf "\n"
+    printf "%s containers are already started. Try running: \`%s status\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
 
-  if [[ $areContainersBuilt == 'false' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are not built. Try: \`$0 build\`"
-    echo
+  if [[ "$are_containers_built" == 'false' ]]; then
+    printf "\n"
+    printf "No %s containers are built. Try running: \`%s build\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
@@ -116,29 +117,29 @@ start)
   docker-compose start
   ;;
 status)
-  if [[ $areContainersBuilt == 'false' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are not built. Try: \`$0 build\`"
-    echo
+  if [[ "$are_containers_built" == 'false' ]]; then
+    printf "\n"
+    printf "No %s containers are built. Try running: \`%s build\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
 
-  if [[ $areContainersRunning == 'false' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are not started. Try: \`$0 start\`"
-    echo
+  if [[ "$are_containers_running" == 'false' ]]; then
+    printf "\n"
+    printf "No %s containers are started. Try running: \`%s start\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
 
-  docker ps -a --filter name=$PROJECT_ID-$PROJECT
+  docker ps -a --filter name="$PROJECT_ID-$PROJECT"
   ;;
 stop|halt)
-  if [[ $areContainersRunning == 'false' ]]; then
-    echo
-    echo "$PROJECT_IN_UPPERCASE containers are not started. Try: \`$0 start\`"
-    echo
+  if [[ "$are_containers_running" == 'false' ]]; then
+    printf "\n"
+    printf "No %s containers are started. Try running: \`%s start\`\n" "$PROJECT_IN_UPPERCASE" "$0"
+    printf "\n"
 
     exit
   fi
