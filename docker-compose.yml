@@ -3,7 +3,7 @@ services:
   010001111-base-data:
     container_name: 010001111-base-data
     image: busybox
-    restart: always
+    restart: 'no'
     stdin_open: true
     volumes:
     - .:/var/www/base:rw
@@ -16,7 +16,7 @@ services:
     image: nginx:stable-alpine
     ports:
     - 8080:80
-    restart: always
+    restart: 'no'
     stdin_open: true
     volumes_from:
     - service:010001111-base-data:rw
@@ -29,7 +29,7 @@ services:
     image: 010001111-base-php
     ports:
     - 9000:9000
-    restart: always
+    restart: 'no'
     stdin_open: true
     volumes_from:
     - service:010001111-base-data:rw
