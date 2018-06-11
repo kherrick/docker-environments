@@ -1,5 +1,7 @@
 services:
   kherrick_alpine-elixir-node:
+    depends_on:
+    - kherrick_alpine-postgres
     container_name: kherrick_alpine-elixir-node
     image: kherrick/alpine-elixir-node
     ports:
@@ -8,5 +10,14 @@ services:
     restart: 'no'
     stdin_open: true
     volumes:
-    - ./shared:/opt/shared:rw
+    - ./shared/app:/opt/shared/app:rw
+  kherrick_alpine-postgres:
+    container_name: kherrick_alpine-postgres
+    environment:
+      POSTGRES_PASSWORD: exmaple<-haha
+    image: library/postgres:latest
+    restart: 'no'
+    stdin_open: true
+    volumes:
+    - ./shared/database:/var/lib/postgresql/data:rw
 version: '3.2'
