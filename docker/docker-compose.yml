@@ -1,7 +1,12 @@
 services:
-  kherrick_alpine-elixir-node:
-    container_name: kherrick_alpine-elixir-node
-    image: kherrick/alpine-elixir-node
+  kherrick_alpine-elixir-node-phoenix:
+    build:
+      context: ./alpine-elixir-node-phoenix
+      dockerfile: ./Dockerfile
+    depends_on:
+    - kherrick_alpine-postgres
+    container_name: kherrick_alpine-elixir-node-phoenix
+    image: kherrick/alpine-elixir-node-phoenix
     ports:
     - published: 4000
       target: 4000
